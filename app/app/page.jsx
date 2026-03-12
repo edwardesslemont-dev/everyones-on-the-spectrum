@@ -249,18 +249,18 @@ export default function Page() {
             )}
           </div>
         )}
-        {!story && (
-          <div style={{ display: "flex", justifyContent: "center", gap: 10, paddingBottom: 40 }}>
-            {[{ href: "/how-it-works", label: "How it works" }, { href: "/archive", label: "Archive" }].map(({ href, label }) => (
-              <a key={href} href={href} style={{ display: "inline-block", fontFamily: "var(--font-inter), sans-serif", fontSize: 12, fontWeight: 500, color: "#9a9590", textDecoration: "none", border: "1px solid #EDEAE4", borderRadius: 8, padding: "8px 18px", background: "#fff", transition: "all 0.15s" }}
-                onMouseEnter={e => { e.currentTarget.style.color = "#1a1916"; e.currentTarget.style.borderColor = "#b0aba5"; }}
-                onMouseLeave={e => { e.currentTarget.style.color = "#9a9590"; e.currentTarget.style.borderColor = "#EDEAE4"; }}>
-                {label}
-              </a>
-            ))}
-          </div>
-        )}
       </main>
+      {!story && (
+        <div style={{ display: "flex", justifyContent: "center", gap: 10, padding: "0 24px 48px" }}>
+          {[{ href: "/how-it-works", label: "How it works" }, { href: "/archive", label: "Archive" }].map(({ href, label }) => (
+            <a key={href} href={href} style={{ display: "inline-block", fontFamily: "var(--font-inter), sans-serif", fontSize: 12, fontWeight: 500, color: "#9a9590", textDecoration: "none", border: "1px solid #EDEAE4", borderRadius: 8, padding: "8px 18px", background: "#fff", transition: "all 0.15s" }}
+              onMouseEnter={e => { e.currentTarget.style.color = "#1a1916"; e.currentTarget.style.borderColor = "#b0aba5"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "#9a9590"; e.currentTarget.style.borderColor = "#EDEAE4"; }}>
+              {label}
+            </a>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
