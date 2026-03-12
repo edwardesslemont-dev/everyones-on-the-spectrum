@@ -3,7 +3,7 @@ import Parser from "rss-parser";
 const parser = new Parser({ timeout: 8000 });
 
 export const SOURCES = {
-  bigGovLeft: [
+  authLeft: [
     { name: "AlterNet", url: "https://www.alternet.org/feeds/" },
     { name: "The American Prospect", url: "https://prospect.org/api/rss/" },
     { name: "Common Dreams", url: "https://www.commondreams.org/rss.xml" },
@@ -15,7 +15,7 @@ export const SOURCES = {
     { name: "Left Voice", url: "https://www.leftvoice.org/feed/" },
     { name: "Black Agenda Report", url: "https://blackagendareport.com/feed" },
   ],
-  bigGovRight: [
+  authRight: [
     { name: "Newsmax", url: "https://www.newsmax.com/rss/Newsfront/16/" },
     { name: "The Blaze", url: "https://feeds.theblaze.com/blaze-latest" },
     { name: "Washington Examiner", url: "https://www.washingtonexaminer.com/feed" },
@@ -66,7 +66,7 @@ async function fetchFeed(source) {
 }
 
 export async function fetchAllHeadlines() {
-  const results = { bigGovLeft: [], bigGovRight: [], libLeft: [], libRight: [] };
+  const results = { authLeft: [], authRight: [], libLeft: [], libRight: [] };
 
   await Promise.all(
     Object.entries(SOURCES).map(async ([quadrant, sources]) => {
