@@ -8,7 +8,7 @@ export const SOURCES = {
     { name: "NBC News", url: "https://feeds.nbcnews.com/nbcnews/public/news" },
     { name: "The Nation", url: "https://www.thenation.com/feed/?post_type=article" },
     { name: "Common Dreams", url: "https://www.commondreams.org/rss.xml" },
-    { name: "Daily Kos", url: "https://www.dailykos.com/rss/recentstories.xml" },
+    { name: "NPR", url: "https://feeds.npr.org/1001/rss.xml" },
   ],
   authRight: [
     { name: "Fox News", url: "https://feeds.foxnews.com/foxnews/politics" },
