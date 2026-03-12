@@ -3,11 +3,14 @@ import { generateStories } from "@/lib/claude";
 import { initDb, saveStories, getBatchKey } from "@/lib/db";
 
 export async function GET(request) {
-  // Verify Vercel cron secret (or allow local dev without it)
+  // Verify secret via header (Vercel cron) or query param (manual trigger)
   const authHeader = request.headers.get("authorization");
+  const { searchParams } = new URL(request.url);
+  const querySecret = searchParams.get("secret");
   if (
     process.env.CRON_SECRET &&
-    authHeader !== `Bearer ${process.env.CRON_SECRET}`
+    authHeader !== `Bearer ${process.env.CRON_SECRET}` &&
+    querySecret !== process.env.CRON_SECRET
   ) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
