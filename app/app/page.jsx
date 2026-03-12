@@ -249,6 +249,15 @@ export default function Page() {
             )}
           </div>
         )}
+        {!story && (
+          <div style={{ textAlign: "center", paddingBottom: 40 }}>
+            <a href="/how-it-works" style={{ display: "inline-block", fontFamily: "var(--font-inter), sans-serif", fontSize: 12, fontWeight: 500, color: "#9a9590", textDecoration: "none", border: "1px solid #EDEAE4", borderRadius: 8, padding: "8px 18px", background: "#fff", transition: "all 0.15s" }}
+              onMouseEnter={e => { e.currentTarget.style.color = "#1a1916"; e.currentTarget.style.borderColor = "#b0aba5"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "#9a9590"; e.currentTarget.style.borderColor = "#EDEAE4"; }}>
+              How it works
+            </a>
+          </div>
+        )}
       </main>
     </div>
   );
