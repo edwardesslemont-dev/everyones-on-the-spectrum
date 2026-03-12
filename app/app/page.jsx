@@ -61,32 +61,12 @@ function QuadrantCard({ q }) {
 const COMPASS = [
   {
     top: [
-      { label: "Big Gov. Left", color: "#7965B2", bg: "#F7F5FD", border: "#D8D0F0", desc: "Equality via state\n+ enforced progressive rules",
-        politicians: [
-          { name: "Bernie Sanders", tip: "Longtime advocate for heavy government role in healthcare, wealth taxes, worker rights, and economic redistribution." },
-          { name: "Alexandria Ocasio-Cortez", tip: "Pushes aggressive government programs (Green New Deal, Medicare for All, wealth taxes) and regulatory oversight to achieve equality." },
-          { name: "Elizabeth Warren", tip: "Strong on economic regulation, breaking up big tech/banks, consumer protection, and progressive taxation." },
-        ]},
-      { label: "Big Gov. Right", color: "#C47B3C", bg: "#FCF6EE", border: "#EDD8B8", desc: "Markets + tradition\nvia enforced rules",
-        politicians: [
-          { name: "Donald Trump", tip: "Protectionist tariffs, massive military/immigration enforcement, tax cuts for markets, and traditionalist social stances." },
-          { name: "Mike Pence", tip: "Classic social conservative with strong government enforcement on abortion/religious liberty, plus pro-business deregulation." },
-          { name: "Ted Cruz", tip: "Advocates tough border security, law-and-order, and government-backed traditional values, while supporting free-market tax policies." },
-        ]},
+      { label: "Big Gov. Left", color: "#7965B2", bg: "#F7F5FD", border: "#D8D0F0", desc: "State-enforced equality & progressive moral regulation" },
+      { label: "Big Gov. Right", color: "#C47B3C", bg: "#FCF6EE", border: "#EDD8B8", desc: "State-enforced tradition, order & protected markets" },
     ],
     bottom: [
-      { label: "Libertarian Left", color: "#4A82B0", bg: "#EFF6FC", border: "#C0DDF0", desc: "Freedom + equality",
-        politicians: [
-          { name: "Rashida Tlaib", tip: "Strong on personal freedoms (civil liberties, anti-war) while pushing socialist-leaning economic policies and distrust of big institutions." },
-          { name: "Cori Bush", tip: "Emphasizes grassroots equality, anti-police militarization, and economic justice without heavy top-down authoritarianism." },
-          { name: "Jill Stein", tip: "Advocates decentralized, anti-corporate economics with strong personal freedoms — anti-surveillance, drug decriminalization, civil rights." },
-        ]},
-      { label: "Libertarian Right", color: "#4E8E80", bg: "#EFF8F6", border: "#B8DDD8", desc: "Freedom + free markets",
-        politicians: [
-          { name: "Rand Paul", tip: "Consistent on civil liberties (anti-Patriot Act, criminal justice reform), ending foreign wars, and free-market economics with low taxes/regulation." },
-          { name: "Ron Paul", tip: "Icon of this quadrant: gold standard advocacy, non-interventionism, drug legalization, and extreme deregulation." },
-          { name: "Justin Amash", tip: "Strong on personal freedoms (privacy, free speech) and laissez-faire economics; left Republican party to become independent/Libertarian." },
-        ]},
+      { label: "Libertarian Left", color: "#4A82B0", bg: "#EFF6FC", border: "#C0DDF0", desc: "Radical equality through voluntary cooperation & maximum personal freedom" },
+      { label: "Libertarian Right", color: "#4E8E80", bg: "#EFF8F6", border: "#B8DDD8", desc: "Maximum individual liberty & completely free markets" },
     ],
   },
 ];
@@ -112,7 +92,7 @@ export default function Page() {
   return (
     <div style={{ minHeight: "100vh", background: "#FAFAF7", color: "#1a1916" }}>
       <header style={{ borderBottom: "1px solid #EDEAE4", textAlign: "center", padding: "36px 24px 28px", background: "#fff" }}>
-        <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: "0.18em", color: "#a09b95", textTransform: "uppercase", marginBottom: 12 }}>Every story. Every angle.</div>
+        <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: "0.18em", color: "#a09b95", textTransform: "uppercase", marginBottom: 12 }}>Top stories. Every angle.</div>
         <h1 style={{
           fontFamily: "var(--font-playfair), Georgia, serif",
           fontSize: "clamp(28px, 5vw, 52px)",
@@ -134,7 +114,7 @@ export default function Page() {
             {/* Compass */}
             <div style={{ margin: "36px auto 0", background: "#fff", border: "1px solid #EDEAE4", borderRadius: 16, padding: "28px 28px 24px" }}>
               <div style={{ textAlign: "center", marginBottom: 4 }}>
-                <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 12, fontWeight: 600, color: "#1a1916" }}>How we cover every story</span>
+                <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 12, fontWeight: 600, color: "#1a1916" }}>How we cover stories</span>
               </div>
               <p style={{ textAlign: "center", fontFamily: "var(--font-inter), sans-serif", fontSize: 11, color: "#9a9590", lineHeight: 1.6, marginBottom: 16 }}>
                 Facts first — then all four perspectives.
@@ -149,12 +129,7 @@ export default function Page() {
                       <div style={{ width: 8, height: 8, borderRadius: "50%", background: q.color, flexShrink: 0 }} />
                       <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: q.color, fontWeight: 700 }}>{q.label}</span>
                     </div>
-                    <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, color: "#6b6760", lineHeight: 1.5, whiteSpace: "pre-line", display: "block", marginBottom: 8 }}>{q.desc}</span>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                      {q.politicians.map((p) => (
-                        <span key={p.name} className="politician">{p.name}<span className="tip">{p.tip}</span></span>
-                      ))}
-                    </div>
+                    <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, color: "#6b6760", lineHeight: 1.5, whiteSpace: "pre-line", display: "block" }}>{q.desc}</span>
                   </div>
                 ))}
               </div>
@@ -169,12 +144,7 @@ export default function Page() {
                       <div style={{ width: 8, height: 8, borderRadius: "50%", background: q.color, flexShrink: 0 }} />
                       <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: q.color, fontWeight: 700 }}>{q.label}</span>
                     </div>
-                    <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, color: "#6b6760", lineHeight: 1.5, whiteSpace: "pre-line", display: "block", marginBottom: 8 }}>{q.desc}</span>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                      {q.politicians.map((p) => (
-                        <span key={p.name} className="politician">{p.name}<span className="tip">{p.tip}</span></span>
-                      ))}
-                    </div>
+                    <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, color: "#6b6760", lineHeight: 1.5, whiteSpace: "pre-line", display: "block" }}>{q.desc}</span>
                   </div>
                 ))}
               </div>
@@ -184,11 +154,14 @@ export default function Page() {
             </div>
 
             {/* Story list */}
-            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "32px 0 16px" }}>
-              <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#b0aba5" }}>
-                {loading ? "Loading stories…" : "Today's Stories"}
-              </span>
-              <div style={{ flex: 1, height: 1, background: "#EDEAE4" }} />
+            <div style={{ padding: "32px 0 16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
+                <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#b0aba5" }}>
+                  {loading ? "Loading stories…" : "Latest stories"}
+                </span>
+                <div style={{ flex: 1, height: 1, background: "#EDEAE4" }} />
+              </div>
+              {!loading && <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, color: "#b0aba5", margin: 0 }}>We refresh our top 5 stories twice a day. Usually around 7AM and 7PM PT.</p>}
             </div>
 
             {loading && (
