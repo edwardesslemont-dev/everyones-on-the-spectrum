@@ -1,6 +1,6 @@
 import { fetchAllHeadlines } from "@/lib/rss";
 import { generateStories } from "@/lib/claude";
-import { initDb, saveStories, getLatestStories, getBatchKey } from "@/lib/db";
+import { initDb, saveStories, getBatchKey } from "@/lib/db";
 
 export async function GET(request) {
   // Verify secret via header (Vercel cron) or query param (manual trigger)
@@ -41,12 +41,7 @@ export async function GET(request) {
     await saveStories(batchKey, stories);
     console.log(`Saved batch: ${batchKey}`);
 
-    // Verify save worked by reading back immediately
-    const verify = await getLatestStories();
-    const verifyCount = Array.isArray(verify) ? verify.length : "NOT_ARRAY";
-    console.log(`Verify read-back: ${verifyCount} stories`);
-
-    return Response.json({ success: true, batchKey, count: stories.length, verifyReadBack: verifyCount, dbUrl: process.env.DATABASE_URL?.slice(0, 35) });
+    return Response.json({ success: true, batchKey, count: stories.length });
   } catch (err) {
     console.error("Cron job failed:", err);
     return Response.json({ error: err.message }, { status: 500 });

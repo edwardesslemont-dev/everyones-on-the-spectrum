@@ -48,7 +48,7 @@ For each story generate:
 
 TONE FOR why/defense: Write with genuine empathy for each quadrant. A reader from that quadrant should recognize themselves. Don't strawman. Make the strongest honest version of each argument. Keep each why and defense to 2–3 sentences max — punchy, not exhaustive.
 
-Return ONLY a valid JSON object — no markdown, no explanation, nothing else — in exactly this structure:
+Return ONLY a valid JSON object — no markdown, no explanation, nothing else. All string values must be on a single line (no literal newlines inside strings). Exactly this structure:
 
 {
   "stories": [
@@ -73,12 +73,26 @@ Return ONLY a valid JSON object — no markdown, no explanation, nothing else �
     messages: [{ role: "user", content: prompt }],
   });
 
-  const raw = message.content[0].text.trim()
-    .replace(/^```json\s*/i, "")
-    .replace(/^```\s*/i, "")
-    .replace(/```\s*$/i, "")
-    .trim();
-  const parsed = JSON.parse(raw);
+  let raw = message.content[0].text.trim();
+
+  // Strip markdown code fences if present
+  raw = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
+
+  // Extract the outermost JSON object (handles extra text before/after)
+  const jsonMatch = raw.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("No JSON object found in Claude response");
+  raw = jsonMatch[0];
+
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    // Last resort: strip literal control characters that break JSON
+    const cleaned = raw.replace(/[\x00-\x1F\x7F]/g, (ch) =>
+      ch === "\n" || ch === "\r" || ch === "\t" ? ch : ""
+    );
+    parsed = JSON.parse(cleaned);
+  }
 
   // Merge static metadata (colors, labels) into each quadrant
   return parsed.stories.map((story, i) => ({
