@@ -68,7 +68,7 @@ Return ONLY a valid JSON object â€” no markdown, no explanation, nothing else â€
 }`;
 
   const message = await client.messages.create({
-    model: "claude-opus-4-6",
+    model: "claude-sonnet-4-6",
     max_tokens: 8000,
     messages: [{ role: "user", content: prompt }],
   });
