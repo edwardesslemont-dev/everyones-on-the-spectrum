@@ -4,18 +4,18 @@ const parser = new Parser({ timeout: 4000 });
 
 export const SOURCES = {
   authLeft: [
+    { name: "New York Times", url: "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml" },
+    { name: "NBC News", url: "https://feeds.nbcnews.com/nbcnews/public/news" },
+    { name: "The Nation", url: "https://www.thenation.com/feed/?post_type=article" },
     { name: "Common Dreams", url: "https://www.commondreams.org/rss.xml" },
     { name: "Daily Kos", url: "https://www.dailykos.com/rss/recentstories.xml" },
-    { name: "The American Prospect", url: "https://prospect.org/api/rss/" },
-    { name: "In These Times", url: "https://inthesetimes.com/feed" },
-    { name: "The Nation", url: "https://www.thenation.com/feed/?post_type=article" },
   ],
   authRight: [
+    { name: "Fox News", url: "https://feeds.foxnews.com/foxnews/politics" },
+    { name: "Daily Wire", url: "https://www.dailywire.com/rss.xml" },
     { name: "Breitbart", url: "https://feeds.feedburner.com/breitbart" },
-    { name: "Newsmax", url: "https://www.newsmax.com/rss/Newsfront/16/" },
-    { name: "Washington Examiner", url: "https://www.washingtonexaminer.com/feed" },
     { name: "New York Post", url: "https://nypost.com/feed/" },
-    { name: "Washington Times", url: "https://www.washingtontimes.com/rss/headlines/" },
+    { name: "Washington Examiner", url: "https://www.washingtonexaminer.com/feed" },
   ],
   libLeft: [
     { name: "The Intercept", url: "https://theintercept.com/feed/?rss" },

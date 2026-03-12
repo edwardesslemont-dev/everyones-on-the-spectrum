@@ -3,8 +3,8 @@ export const metadata = {
 };
 
 const SOURCES = {
-  "Big Gov. Left": ["Common Dreams", "Daily Kos", "The American Prospect", "In These Times", "The Nation"],
-  "Big Gov. Right": ["Breitbart", "Newsmax", "Washington Examiner", "New York Post", "Washington Times"],
+  "Big Gov. Left": ["New York Times", "NBC News", "The Nation", "Common Dreams", "Daily Kos"],
+  "Big Gov. Right": ["Fox News", "Daily Wire", "Breitbart", "New York Post", "Washington Examiner"],
   "Libertarian Left": ["The Intercept", "Mother Jones", "Jacobin", "Democracy Now", "CounterPunch"],
   "Libertarian Right": ["Reason", "Cato Institute", "Mises Institute", "Antiwar.com", "FEE"],
 };
