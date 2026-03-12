@@ -46,7 +46,7 @@ For each story generate:
   - defense: a substantive paragraph showing HOW they'd argue their position — the specific evidence, historical examples, or logic they'd use
   - sources: 2–3 source names from that quadrant's typical media diet (use real outlet names)
 
-TONE FOR why/defense: Write with genuine empathy for each quadrant. A reader from that quadrant should recognize themselves. Don't strawman. Make the strongest honest version of each argument.
+TONE FOR why/defense: Write with genuine empathy for each quadrant. A reader from that quadrant should recognize themselves. Don't strawman. Make the strongest honest version of each argument. Keep each why and defense to 2–3 sentences max — punchy, not exhaustive.
 
 Return ONLY a valid JSON object — no markdown, no explanation, nothing else — in exactly this structure:
 
@@ -69,7 +69,7 @@ Return ONLY a valid JSON object — no markdown, no explanation, nothing else �
 
   const message = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 8000,
+    max_tokens: 6000,
     messages: [{ role: "user", content: prompt }],
   });
 
