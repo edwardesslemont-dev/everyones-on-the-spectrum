@@ -251,7 +251,7 @@ export default function Page() {
         )}
         {!story && (
           <div style={{ display: "flex", justifyContent: "center", gap: 10, paddingBottom: 40 }}>
-            {[{ href: "/archive", label: "Archive" }, { href: "/how-it-works", label: "How it works" }].map(({ href, label }) => (
+            {[{ href: "/how-it-works", label: "How it works" }, { href: "/archive", label: "Archive" }].map(({ href, label }) => (
               <a key={href} href={href} style={{ display: "inline-block", fontFamily: "var(--font-inter), sans-serif", fontSize: 12, fontWeight: 500, color: "#9a9590", textDecoration: "none", border: "1px solid #EDEAE4", borderRadius: 8, padding: "8px 18px", background: "#fff", transition: "all 0.15s" }}
                 onMouseEnter={e => { e.currentTarget.style.color = "#1a1916"; e.currentTarget.style.borderColor = "#b0aba5"; }}
                 onMouseLeave={e => { e.currentTarget.style.color = "#9a9590"; e.currentTarget.style.borderColor = "#EDEAE4"; }}>
