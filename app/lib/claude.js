@@ -9,12 +9,20 @@ const QUADRANT_META = {
   libRight:  { label: "Libertarian Right",  color: "#4E8E80", bgColor: "#EFF8F6", borderColor: "#B8DDD8" },
 };
 
+const QUADRANT_LABELS = {
+  authLeft: "BIG GOV. LEFT SOURCES",
+  authRight: "BIG GOV. RIGHT SOURCES",
+  libLeft: "LIBERTARIAN LEFT SOURCES",
+  libRight: "LIBERTARIAN RIGHT SOURCES",
+  general: "TECH / BUSINESS / CULTURE SOURCES",
+};
+
 function formatHeadlines(headlines) {
   return Object.entries(headlines)
     .map(([quadrant, items]) => {
-      const label = QUADRANT_META[quadrant].label;
+      const label = QUADRANT_LABELS[quadrant] || quadrant.toUpperCase();
       const lines = items.map((h) => `  - [${h.source}] ${h.title}`).join("\n");
-      return `${label.toUpperCase()} SOURCES:\n${lines || "  (no items)"}`;
+      return `${label}:\n${lines || "  (no items)"}`;
     })
     .join("\n\n");
 }
@@ -22,31 +30,40 @@ function formatHeadlines(headlines) {
 export async function generateStories(headlines) {
   const headlineText = formatHeadlines(headlines);
 
-  const prompt = `You are the editorial engine for "Everyone's on the Spectrum" — a news app that presents every major story from 4 political perspectives: Big Gov. Left, Big Gov. Right, Libertarian Left, and Libertarian Right.
+  const prompt = `You are the editorial engine for "Everyone's on the Spectrum" — a news app that presents the most important stories of the moment from 4 political perspectives: Big Gov. Left, Big Gov. Right, Libertarian Left, and Libertarian Right.
 
-Here are headlines collected in the last 12 hours from 40 news sources across the political spectrum:
+Here are headlines from 25 news sources across the political spectrum and general interest categories:
 
 ${headlineText}
 
-Your task: select the 5 most significant stories of this moment and generate full coverage for each.
+Your task: think like a front-page editor. Ask yourself: "What are the 5 most important things a smart, curious American should know about right now?" Then generate full coverage for each.
 
-SELECTION CRITERIA:
-- Prioritize stories with cross-quadrant significance (covered by multiple quadrant sources, OR major in one quadrant but absent from others — absence is valuable, it reveals coverage gaps)
-- Prefer concrete news events over opinion pieces
-- Ensure variety: don't pick 5 political stories if there are economy, tech, or world events worth covering
-- Avoid trivial or celebrity non-news
+STORY SELECTION:
+- Pick the biggest ongoing stories, not just the latest tactical update. If the Iran conflict is the top story, frame it as "Iran war escalates" — not "missile hits school." The school strike is a fact within the bigger story.
+- Exception: if a single event IS the story (a presidential assassination, a landmark Supreme Court ruling, a massive acquisition), frame it at the event level.
+- Actively seek variety: politics, geopolitics, economy, tech/AI, business, culture. Do not pick 5 political stories if major tech or economic stories are unfolding.
+- Tech and AI stories are a priority. Business deals, major product launches, AI developments, and industry shifts are all fair game.
+- The same major story can appear in consecutive refreshes if it's still the most important thing happening — just reflect the latest developments in the facts.
+- Prefer stories that matter to a broad American audience over niche or hyper-partisan events.
+
+HEADLINE FRAMING:
+- Frame at the story level: "Iran War Escalates as Oil Hits $100" not "U.S. Missile Strikes Iranian School"
+- Neutral and factual — no spin, no loaded language
+- Specific enough to be informative, broad enough to capture the full story
 
 For each story generate:
-- A neutral, factual headline (no spin)
+- A neutral, story-level headline
 - A category from: Politics, Economy, Technology, Health, World, Culture
-- 4–6 verified facts (no framing, no opinion — just what happened)
+- 4–6 verified facts (specific events, numbers, names — this is where tactical details like the school strike belong)
 - For each of the 4 quadrants:
   - emotion: one emoji representing how this quadrant emotionally reacts to this story
-  - why: a substantive paragraph explaining WHY people in this quadrant feel the way they do, rooted in their core values and worldview
-  - defense: a substantive paragraph showing HOW they'd argue their position — the specific evidence, historical examples, or logic they'd use
-  - sources: 2–3 source names from that quadrant's typical media diet (use real outlet names)
+  - why: WHY people in this quadrant feel the way they do, rooted in their core values
+  - defense: HOW they'd argue their position — specific evidence, historical examples, or logic they'd use
+  - sources: 2–3 real outlet names from that quadrant's typical media diet
 
-TONE FOR why/defense: Write with genuine empathy for each quadrant. A reader from that quadrant should recognize themselves. Don't strawman. Make the strongest honest version of each argument. Keep each why and defense to 2–3 sentences max — punchy, not exhaustive.
+IMPORTANT: Every story gets all 4 quadrant perspectives — even tech, business, and culture stories. AI taking jobs, corporate consolidation, government regulation of tech — the quadrant framework applies to everything.
+
+TONE: Write with genuine empathy for each quadrant. A reader from that quadrant should recognize themselves. Don't strawman. Make the strongest honest version of each argument. Keep why and defense to 2–3 sentences max — punchy, not exhaustive.
 
 Return ONLY a valid JSON object — no markdown, no explanation, nothing else. All string values must be on a single line (no literal newlines inside strings). Exactly this structure:
 

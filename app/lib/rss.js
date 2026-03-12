@@ -31,6 +31,13 @@ export const SOURCES = {
     { name: "Antiwar.com", url: "https://www.antiwar.com/rss/latest.xml" },
     { name: "FEE", url: "https://fee.org/articles/feed/" },
   ],
+  general: [
+    { name: "The Verge", url: "https://www.theverge.com/rss/index.xml" },
+    { name: "Wired", url: "https://www.wired.com/feed/rss" },
+    { name: "Ars Technica", url: "https://feeds.arstechnica.com/arstechnica/index" },
+    { name: "TechCrunch", url: "https://techcrunch.com/feed/" },
+    { name: "Variety", url: "https://variety.com/feed/" },
+  ],
 };
 
 async function fetchFeed(source) {
@@ -46,7 +53,7 @@ async function fetchFeed(source) {
 }
 
 export async function fetchAllHeadlines() {
-  const results = { authLeft: [], authRight: [], libLeft: [], libRight: [] };
+  const results = { authLeft: [], authRight: [], libLeft: [], libRight: [], general: [] };
 
   await Promise.all(
     Object.entries(SOURCES).map(async ([quadrant, sources]) => {

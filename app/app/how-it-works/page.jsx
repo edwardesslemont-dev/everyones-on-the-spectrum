@@ -7,13 +7,15 @@ const SOURCES = {
   "Big Gov. Right": ["Fox News", "Daily Wire", "Breitbart", "New York Post", "Washington Examiner"],
   "Libertarian Left": ["The Intercept", "Mother Jones", "Jacobin", "Democracy Now", "CounterPunch"],
   "Libertarian Right": ["Reason", "Cato Institute", "Mises Institute", "Antiwar.com", "FEE"],
+  "Tech / Business / Culture": ["The Verge", "Wired", "Ars Technica", "TechCrunch", "Variety"],
 };
 
 const QUADRANT_COLORS = {
-  "Big Gov. Left":      { color: "#7965B2", bg: "#F7F5FD", border: "#D8D0F0" },
-  "Big Gov. Right":     { color: "#C47B3C", bg: "#FCF6EE", border: "#EDD8B8" },
-  "Libertarian Left":   { color: "#4A82B0", bg: "#EFF6FC", border: "#C0DDF0" },
-  "Libertarian Right":  { color: "#4E8E80", bg: "#EFF8F6", border: "#B8DDD8" },
+  "Big Gov. Left":            { color: "#7965B2", bg: "#F7F5FD", border: "#D8D0F0" },
+  "Big Gov. Right":           { color: "#C47B3C", bg: "#FCF6EE", border: "#EDD8B8" },
+  "Libertarian Left":         { color: "#4A82B0", bg: "#EFF6FC", border: "#C0DDF0" },
+  "Libertarian Right":        { color: "#4E8E80", bg: "#EFF8F6", border: "#B8DDD8" },
+  "Tech / Business / Culture": { color: "#6B6760", bg: "#F5F4F0", border: "#E0DDD8" },
 };
 
 function Section({ title, children }) {
@@ -61,7 +63,7 @@ export default function HowItWorks() {
         <Section title="The process">
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {[
-              { step: "1", label: "Collect headlines", desc: "Twice a day, we pull the latest headlines from 20 news sources across the political spectrum — 5 per quadrant." },
+              { step: "1", label: "Collect headlines", desc: "Twice a day, we pull the latest headlines from 25 sources — 20 across the political spectrum and 5 tech, business, and culture outlets." },
               { step: "2", label: "Select the top stories", desc: "Claude (Anthropic's AI) reads all the headlines and selects the 5 most significant stories of the moment, prioritizing events covered across multiple quadrants and ensuring variety across topics." },
               { step: "3", label: "Generate four perspectives", desc: "For each story, Claude writes a neutral factual summary and then four distinct takes — one per quadrant — each rooted in that quadrant's genuine values and worldview. No strawmen." },
               { step: "4", label: "Publish", desc: "Stories go live on the site automatically. The whole process takes under a minute." },
@@ -79,7 +81,7 @@ export default function HowItWorks() {
 
         <Section title="Sources">
           <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 14, lineHeight: 1.7, color: "#5a5650", marginBottom: 16 }}>
-            We pull from 20 outlets — 5 per quadrant. Sources were chosen to represent each quadrant's mainstream and independent voices.
+            We pull from 25 outlets — 5 per quadrant, plus 5 tech, business, and culture sources. The political sources were chosen to represent each quadrant's mainstream and independent voices. The general sources ensure we surface major tech, AI, business, and culture stories that matter regardless of political angle.
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             {Object.entries(SOURCES).map(([quadrant, sources]) => {
