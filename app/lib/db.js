@@ -42,6 +42,23 @@ export async function getLatestStories() {
   return result.rows[0]?.stories || null;
 }
 
+export async function getArchiveBatches() {
+  const db = getDb();
+  const result = await db.query(
+    `SELECT batch_key, stories, created_at
+     FROM story_batches
+     WHERE created_at > NOW() - INTERVAL '30 days'
+     ORDER BY created_at DESC
+     OFFSET 1`
+  );
+  return result.rows;
+}
+
+export async function cleanupOldBatches() {
+  const db = getDb();
+  await db.query(`DELETE FROM story_batches WHERE created_at < NOW() - INTERVAL '30 days'`);
+}
+
 export function getBatchKey() {
   const now = new Date();
   const date = now.toISOString().split("T")[0];

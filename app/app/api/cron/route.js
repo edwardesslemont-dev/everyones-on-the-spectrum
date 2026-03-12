@@ -1,6 +1,6 @@
 import { fetchAllHeadlines } from "@/lib/rss";
 import { generateStories } from "@/lib/claude";
-import { initDb, saveStories, getBatchKey } from "@/lib/db";
+import { initDb, saveStories, getBatchKey, cleanupOldBatches } from "@/lib/db";
 
 export async function GET(request) {
   // Verify secret via header (Vercel cron) or query param (manual trigger)
@@ -40,6 +40,9 @@ export async function GET(request) {
     const batchKey = getBatchKey();
     await saveStories(batchKey, stories);
     console.log(`Saved batch: ${batchKey}`);
+
+    // 5. Cleanup batches older than 30 days
+    await cleanupOldBatches();
 
     return Response.json({ success: true, batchKey, count: stories.length });
   } catch (err) {
