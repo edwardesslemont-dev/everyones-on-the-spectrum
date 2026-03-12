@@ -68,12 +68,16 @@ Return ONLY a valid JSON object â€” no markdown, no explanation, nothing else â€
 }`;
 
   const message = await client.messages.create({
-    model: "claude-sonnet-4-6",
+    model: "claude-haiku-4-5-20251001",
     max_tokens: 8000,
     messages: [{ role: "user", content: prompt }],
   });
 
-  const raw = message.content[0].text.trim();
+  const raw = message.content[0].text.trim()
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/```\s*$/i, "")
+    .trim();
   const parsed = JSON.parse(raw);
 
   // Merge static metadata (colors, labels) into each quadrant
