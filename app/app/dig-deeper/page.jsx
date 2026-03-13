@@ -10,19 +10,19 @@ const QUADRANT_META = {
 };
 
 const HISTORY_TTL = 24 * 60 * 60 * 1000;
-const INIT_PROMPT = "Give me a brief analyst's take on this story — what's the most important context a reader should know, what's genuinely contested vs what all sides agree on, and what to watch for next.";
+const INIT_TEXT = "Give me a brief analyst's take on this story — what's the most important context a reader should know, what's genuinely contested vs what all sides agree on, and what to watch for next.";
 
-function getHistoryKey(storyId) {
-  return `dig-deeper-history-${storyId}`;
+function getHistoryKey(id) {
+  return `dig-deeper-history-${id}`;
 }
 
-function loadHistory(storyId) {
+function loadHistory(id) {
   try {
-    const raw = localStorage.getItem(getHistoryKey(storyId));
+    const raw = localStorage.getItem(getHistoryKey(id));
     if (!raw) return [];
     const { messages, savedAt } = JSON.parse(raw);
     if (Date.now() - savedAt > HISTORY_TTL) {
-      localStorage.removeItem(getHistoryKey(storyId));
+      localStorage.removeItem(getHistoryKey(id));
       return [];
     }
     return messages;
@@ -31,33 +31,33 @@ function loadHistory(storyId) {
   }
 }
 
-function saveHistory(storyId, messages) {
+function saveHistory(id, messages) {
   try {
-    localStorage.setItem(
-      getHistoryKey(storyId),
-      JSON.stringify({ messages, savedAt: Date.now() })
-    );
+    localStorage.setItem(getHistoryKey(id), JSON.stringify({ messages, savedAt: Date.now() }));
   } catch {}
 }
 
 function ChatUI({ story, initialMessages }) {
+  const [input, setInput] = useState("");
   const bottomRef = useRef(null);
   const initiated = useRef(false);
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, append, setMessages } = useChat({
+  const { messages, sendMessage, status, setMessages } = useChat({
     api: "/api/chat",
     body: { story },
     initialMessages,
-    onFinish: (message, { usage, finishReason }) => {
-      saveHistory(story.id, [...messages, message]);
+    onFinish: () => {
+      saveHistory(story.id, messages);
     },
   });
+
+  const isLoading = status === "streaming" || status === "submitted";
 
   // Trigger initial analysis if no history
   useEffect(() => {
     if (!initiated.current && messages.length === 0) {
       initiated.current = true;
-      append({ role: "user", content: INIT_PROMPT });
+      sendMessage({ text: INIT_TEXT });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -67,10 +67,17 @@ function ChatUI({ story, initialMessages }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  // Hide the initial prompt from the user — show only non-init user messages + all assistant messages
-  const visibleMessages = messages.filter(
-    (m) => !(m.role === "user" && m.content === INIT_PROMPT)
-  );
+  // Persist after messages change
+  useEffect(() => {
+    if (messages.length > 0) saveHistory(story.id, messages);
+  }, [messages, story.id]);
+
+  function submit(e) {
+    e?.preventDefault();
+    if (!input.trim() || isLoading) return;
+    sendMessage({ text: input });
+    setInput("");
+  }
 
   function clearHistory() {
     localStorage.removeItem(getHistoryKey(story.id));
@@ -78,9 +85,15 @@ function ChatUI({ story, initialMessages }) {
     initiated.current = false;
     setTimeout(() => {
       initiated.current = true;
-      append({ role: "user", content: INIT_PROMPT });
+      sendMessage({ text: INIT_TEXT });
     }, 0);
   }
+
+  // Hide the auto-sent initial prompt from the visible chat
+  const visibleMessages = messages.filter(
+    (m) => !(m.role === "user" && m.parts?.some?.(p => p.type === "text" && p.text === INIT_TEXT))
+         && !(m.role === "user" && m.content === INIT_TEXT)
+  );
 
   return (
     <>
@@ -92,27 +105,30 @@ function ChatUI({ story, initialMessages }) {
           </div>
         )}
 
-        {visibleMessages.map((m) => (
-          <div key={m.id} style={{ marginBottom: 20, display: "flex", flexDirection: "column", alignItems: m.role === "user" ? "flex-end" : "flex-start" }}>
-            {m.role === "assistant" && (
-              <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#b0aba5", marginBottom: 6 }}>Analyst</span>
-            )}
-            <div style={{
-              maxWidth: "85%",
-              padding: m.role === "user" ? "10px 16px" : "16px 20px",
-              borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "4px 16px 16px 16px",
-              background: m.role === "user" ? "#7965B2" : "#fff",
-              border: m.role === "user" ? "none" : "1px solid #EDEAE4",
-              color: m.role === "user" ? "#fff" : "#2a2724",
-              fontFamily: "var(--font-source-serif), Georgia, serif",
-              fontSize: 14,
-              lineHeight: 1.75,
-              whiteSpace: "pre-wrap",
-            }}>
-              {m.content}
+        {visibleMessages.map((m) => {
+          const text = m.content ?? m.parts?.filter(p => p.type === "text").map(p => p.text).join("") ?? "";
+          return (
+            <div key={m.id} style={{ marginBottom: 20, display: "flex", flexDirection: "column", alignItems: m.role === "user" ? "flex-end" : "flex-start" }}>
+              {m.role === "assistant" && (
+                <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#b0aba5", marginBottom: 6 }}>Analyst</span>
+              )}
+              <div style={{
+                maxWidth: "85%",
+                padding: m.role === "user" ? "10px 16px" : "16px 20px",
+                borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "4px 16px 16px 16px",
+                background: m.role === "user" ? "#7965B2" : "#fff",
+                border: m.role === "user" ? "none" : "1px solid #EDEAE4",
+                color: m.role === "user" ? "#fff" : "#2a2724",
+                fontFamily: "var(--font-source-serif), Georgia, serif",
+                fontSize: 14,
+                lineHeight: 1.75,
+                whiteSpace: "pre-wrap",
+              }}>
+                {text}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {isLoading && visibleMessages.length > 0 && (
           <div style={{ display: "flex", alignItems: "flex-start", marginBottom: 20 }}>
@@ -138,11 +154,11 @@ function ChatUI({ story, initialMessages }) {
 
       {/* Input */}
       <div style={{ maxWidth: 720, margin: "0 auto", width: "100%", padding: "16px 24px 32px", flexShrink: 0 }}>
-        <form onSubmit={handleSubmit} style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
+        <form onSubmit={submit} style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
           <textarea
             value={input}
-            onChange={handleInputChange}
-            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(e); } }}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
             placeholder="Ask a follow-up question…"
             rows={1}
             style={{
@@ -211,7 +227,6 @@ export default function DigDeeperPage() {
     }
   }, []);
 
-  // Not yet loaded
   if (initialMessages === null) return null;
 
   if (!story) {
@@ -227,7 +242,6 @@ export default function DigDeeperPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#FAFAF7", color: "#1a1916", display: "flex", flexDirection: "column" }}>
-      {/* Header */}
       <header style={{ borderBottom: "1px solid #EDEAE4", textAlign: "center", padding: "28px 24px 20px", background: "#fff", flexShrink: 0 }}>
         <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: "0.18em", color: "#a09b95", textTransform: "uppercase", marginBottom: 10 }}>Dig Deeper</div>
         <h1 style={{ fontFamily: "var(--font-playfair), Georgia, serif", fontSize: "clamp(20px, 3vw, 28px)", fontWeight: 700, lineHeight: 1.25, color: "#1a1916", maxWidth: 680, margin: "0 auto" }}>{story.headline}</h1>
@@ -241,7 +255,6 @@ export default function DigDeeperPage() {
         </div>
       </header>
 
-      {/* Back link */}
       <div style={{ maxWidth: 720, margin: "0 auto", width: "100%", padding: "16px 24px 0" }}>
         <button onClick={() => window.history.back()} style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 13, color: "#9a9590", background: "none", border: "none", cursor: "pointer", padding: 0 }}>← Back</button>
       </div>
