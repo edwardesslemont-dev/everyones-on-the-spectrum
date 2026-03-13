@@ -1,8 +1,7 @@
 {
   "functions": {
-    "app/api/cron/route.js": {
-      "maxDuration": 60
-    }
+    "app/api/cron/route.js": { "maxDuration": 60 },
+    "app/api/refresh/route.js": { "maxDuration": 60 }
   },
   "crons": [
     {

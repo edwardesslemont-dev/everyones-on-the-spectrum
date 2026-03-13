@@ -42,6 +42,15 @@ export async function getLatestStories() {
   return result.rows[0]?.stories || null;
 }
 
+export async function getLatestBatch() {
+  const db = getDb();
+  const result = await db.query(
+    `SELECT stories, created_at FROM story_batches ORDER BY created_at DESC LIMIT 1`
+  );
+  if (!result.rows[0]) return null;
+  return { stories: result.rows[0].stories, createdAt: result.rows[0].created_at };
+}
+
 export async function getArchiveBatches() {
   const db = getDb();
   const result = await db.query(

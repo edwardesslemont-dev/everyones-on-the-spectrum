@@ -71,21 +71,49 @@ const COMPASS = [
   },
 ];
 
+const COOLDOWN_MS = 4 * 60 * 60 * 1000;
+
+function timeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  return `${hours}h ago`;
+}
+
 export default function Page() {
   const [stories, setStories] = useState(FALLBACK_STORIES);
   const [loading, setLoading] = useState(true);
+  const [createdAt, setCreatedAt] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [tab, setTab] = useState("facts");
 
-  useEffect(() => {
-    fetch("/api/stories")
+  function fetchStories() {
+    return fetch("/api/stories")
       .then((r) => r.json())
       .then((data) => {
         if (data.stories?.length) setStories(data.stories);
+        if (data.createdAt) setCreatedAt(data.createdAt);
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {});
+  }
+
+  useEffect(() => {
+    fetchStories().finally(() => setLoading(false));
   }, []);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try {
+      const res = await fetch("/api/refresh", { method: "POST" });
+      if (res.ok) await fetchStories();
+    } catch {}
+    setRefreshing(false);
+  }
+
+  const canRefresh = !createdAt || (Date.now() - new Date(createdAt).getTime() >= COOLDOWN_MS);
 
   const story = stories.find((s) => s.id === selectedId) || null;
 
@@ -160,8 +188,17 @@ export default function Page() {
                   {loading ? "Loading stories…" : "Latest stories"}
                 </span>
                 <div style={{ flex: 1, height: 1, background: "#EDEAE4" }} />
+                {!loading && (
+                  <button
+                    onClick={handleRefresh}
+                    disabled={!canRefresh || refreshing}
+                    style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, fontWeight: 500, color: canRefresh && !refreshing ? "#9a9590" : "#c8c4be", background: "none", border: "1px solid", borderColor: canRefresh && !refreshing ? "#EDEAE4" : "#f0ede8", borderRadius: 6, padding: "4px 12px", cursor: canRefresh && !refreshing ? "pointer" : "default", transition: "all 0.15s", whiteSpace: "nowrap" }}>
+                    {refreshing ? "Refreshing…" : canRefresh ? "Refresh" : createdAt ? `Updated ${timeAgo(createdAt)}` : "Refresh"}
+                  </button>
+                )}
               </div>
-              {!loading && <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, color: "#b0aba5", margin: 0 }}>We refresh our top 5 stories twice a day. Usually around 7AM and 7PM PT.</p>}
+              {!loading && !refreshing && <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, color: "#b0aba5", margin: 0 }}>Stories update every 4 hours. Use the button to refresh manually.</p>}
+              {refreshing && <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, color: "#b0aba5", margin: 0 }}>Fetching the latest headlines and generating new stories — this takes about 45 seconds…</p>}
             </div>
 
             {loading && (
