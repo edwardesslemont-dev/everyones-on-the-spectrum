@@ -9,7 +9,8 @@ const QUADRANT_META = {
   libRight:  { label: "Free-Market Libertarian",        color: "#4E8E80" },
 };
 
-const HISTORY_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const HISTORY_TTL = 24 * 60 * 60 * 1000;
+const INIT_PROMPT = "Give me a brief analyst's take on this story — what's the most important context a reader should know, what's genuinely contested vs what all sides agree on, and what to watch for next.";
 
 function getHistoryKey(storyId) {
   return `dig-deeper-history-${storyId}`;
@@ -39,132 +40,53 @@ function saveHistory(storyId, messages) {
   } catch {}
 }
 
-export default function DigDeeperPage() {
-  const [story, setStory] = useState(null);
-  const [ready, setReady] = useState(false);
+function ChatUI({ story, initialMessages }) {
   const bottomRef = useRef(null);
-  const inputRef = useRef(null);
+  const initiated = useRef(false);
 
-  // Load story from sessionStorage
-  useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem("dig-deeper-story");
-      if (raw) setStory(JSON.parse(raw));
-    } catch {}
-    setReady(true);
-  }, []);
-
-  const savedMessages = story ? loadHistory(story.id) : [];
-
-  const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, isLoading, append, setMessages } = useChat({
     api: "/api/chat",
     body: { story },
-    initialMessages: savedMessages,
-    onFinish: () => {
-      if (story) saveHistory(story.id, messages);
+    initialMessages,
+    onFinish: (message, { usage, finishReason }) => {
+      saveHistory(story.id, [...messages, message]);
     },
   });
 
-  // Persist after each message change
+  // Trigger initial analysis if no history
   useEffect(() => {
-    if (story && messages.length > 0) saveHistory(story.id, messages);
-  }, [messages, story]);
+    if (!initiated.current && messages.length === 0) {
+      initiated.current = true;
+      append({ role: "user", content: INIT_PROMPT });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Auto-scroll to bottom
+  // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  // Send initial analysis if no history
-  useEffect(() => {
-    if (story && ready && messages.length === 0) {
-      const syntheticSubmit = new Event("submit");
-      // Trigger initial analysis via the chat API
-      fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          story,
-          messages: [
-            {
-              role: "user",
-              content: `Give me a brief analyst's take on this story — what's the most important context a reader should know, what's genuinely contested vs what all sides agree on, and what to watch for next.`,
-            },
-          ],
-        }),
-      }).then(async (res) => {
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let fullText = "";
+  // Hide the initial prompt from the user — show only non-init user messages + all assistant messages
+  const visibleMessages = messages.filter(
+    (m) => !(m.role === "user" && m.content === INIT_PROMPT)
+  );
 
-        const assistantId = `init-${Date.now()}`;
-        setMessages([
-          { id: "init-user", role: "user", content: "Give me a brief analyst's take on this story — what's the most important context a reader should know, what's genuinely contested vs what all sides agree on, and what to watch for next." },
-          { id: assistantId, role: "assistant", content: "" },
-        ]);
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          // Parse AI SDK data stream format (lines like: 0:"text chunk")
-          chunk.split("\n").forEach((line) => {
-            const match = line.match(/^0:"(.*)"$/);
-            if (match) {
-              try {
-                fullText += JSON.parse(`"${match[1]}"`);
-              } catch {}
-            }
-          });
-          setMessages([
-            { id: "init-user", role: "user", content: "Give me a brief analyst's take on this story — what's the most important context a reader should know, what's genuinely contested vs what all sides agree on, and what to watch for next." },
-            { id: assistantId, role: "assistant", content: fullText },
-          ]);
-        }
-      }).catch(() => {});
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [story, ready]);
-
-  if (!ready) return null;
-
-  if (!story) {
-    return (
-      <div style={{ minHeight: "100vh", background: "#FAFAF7", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ textAlign: "center", padding: 40 }}>
-          <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 14, color: "#9a9590", marginBottom: 16 }}>No story selected.</p>
-          <a href="/" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 13, color: "#7965B2", textDecoration: "none" }}>← Back to stories</a>
-        </div>
-      </div>
-    );
+  function clearHistory() {
+    localStorage.removeItem(getHistoryKey(story.id));
+    setMessages([]);
+    initiated.current = false;
+    setTimeout(() => {
+      initiated.current = true;
+      append({ role: "user", content: INIT_PROMPT });
+    }, 0);
   }
 
-  const visibleMessages = messages.filter((m) => m.role !== "user" || m.id !== "init-user");
-
   return (
-    <div style={{ minHeight: "100vh", background: "#FAFAF7", color: "#1a1916", display: "flex", flexDirection: "column" }}>
-      {/* Header */}
-      <header style={{ borderBottom: "1px solid #EDEAE4", textAlign: "center", padding: "28px 24px 20px", background: "#fff", flexShrink: 0 }}>
-        <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: "0.18em", color: "#a09b95", textTransform: "uppercase", marginBottom: 10 }}>Dig Deeper</div>
-        <h1 style={{ fontFamily: "var(--font-playfair), Georgia, serif", fontSize: "clamp(20px, 3vw, 28px)", fontWeight: 700, lineHeight: 1.25, color: "#1a1916", maxWidth: 680, margin: "0 auto" }}>{story.headline}</h1>
-        <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-          {Object.entries(story.quadrants).map(([key, q]) => (
-            <span key={key} style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "var(--font-inter), sans-serif", fontSize: 10, color: QUADRANT_META[key]?.color || q.color, fontWeight: 600, letterSpacing: "0.06em" }}>
-              <span style={{ width: 7, height: 7, borderRadius: "50%", background: QUADRANT_META[key]?.color || q.color, display: "inline-block" }} />
-              {q.label}
-            </span>
-          ))}
-        </div>
-      </header>
-
-      {/* Back link */}
-      <div style={{ maxWidth: 720, margin: "0 auto", width: "100%", padding: "16px 24px 0" }}>
-        <button onClick={() => window.history.back()} style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 13, color: "#9a9590", background: "none", border: "none", cursor: "pointer", padding: 0 }}>← Back</button>
-      </div>
-
+    <>
       {/* Messages */}
       <div style={{ flex: 1, maxWidth: 720, margin: "0 auto", width: "100%", padding: "20px 24px 0", overflowY: "auto" }}>
-        {messages.length === 0 && (
+        {visibleMessages.length === 0 && isLoading && (
           <div style={{ textAlign: "center", padding: "40px 0", fontFamily: "var(--font-inter), sans-serif", fontSize: 13, color: "#b0aba5" }}>
             Generating analysis…
           </div>
@@ -192,7 +114,7 @@ export default function DigDeeperPage() {
           </div>
         ))}
 
-        {isLoading && (
+        {isLoading && visibleMessages.length > 0 && (
           <div style={{ display: "flex", alignItems: "flex-start", marginBottom: 20 }}>
             <div style={{ background: "#fff", border: "1px solid #EDEAE4", borderRadius: "4px 16px 16px 16px", padding: "14px 18px" }}>
               <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 13, color: "#b0aba5" }}>Thinking…</span>
@@ -200,10 +122,10 @@ export default function DigDeeperPage() {
           </div>
         )}
 
-        {messages.length > 2 && (
+        {visibleMessages.length > 1 && !isLoading && (
           <div style={{ textAlign: "center", padding: "8px 0 4px" }}>
             <button
-              onClick={() => { setMessages([]); if (story) localStorage.removeItem(getHistoryKey(story.id)); }}
+              onClick={clearHistory}
               style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, color: "#c8c4be", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 3, padding: 0 }}
             >
               Clear conversation
@@ -218,7 +140,6 @@ export default function DigDeeperPage() {
       <div style={{ maxWidth: 720, margin: "0 auto", width: "100%", padding: "16px 24px 32px", flexShrink: 0 }}>
         <form onSubmit={handleSubmit} style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
           <textarea
-            ref={inputRef}
             value={input}
             onChange={handleInputChange}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(e); } }}
@@ -267,6 +188,65 @@ export default function DigDeeperPage() {
           Conversation history saved for 24 hours · Enter to send, Shift+Enter for new line
         </p>
       </div>
+    </>
+  );
+}
+
+export default function DigDeeperPage() {
+  const [story, setStory] = useState(null);
+  const [initialMessages, setInitialMessages] = useState(null);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("dig-deeper-story");
+      if (raw) {
+        const s = JSON.parse(raw);
+        setStory(s);
+        setInitialMessages(loadHistory(s.id));
+      } else {
+        setInitialMessages([]);
+      }
+    } catch {
+      setInitialMessages([]);
+    }
+  }, []);
+
+  // Not yet loaded
+  if (initialMessages === null) return null;
+
+  if (!story) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#FAFAF7", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center", padding: 40 }}>
+          <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 14, color: "#9a9590", marginBottom: 16 }}>No story selected.</p>
+          <a href="/" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 13, color: "#7965B2", textDecoration: "none" }}>← Back to stories</a>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#FAFAF7", color: "#1a1916", display: "flex", flexDirection: "column" }}>
+      {/* Header */}
+      <header style={{ borderBottom: "1px solid #EDEAE4", textAlign: "center", padding: "28px 24px 20px", background: "#fff", flexShrink: 0 }}>
+        <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: "0.18em", color: "#a09b95", textTransform: "uppercase", marginBottom: 10 }}>Dig Deeper</div>
+        <h1 style={{ fontFamily: "var(--font-playfair), Georgia, serif", fontSize: "clamp(20px, 3vw, 28px)", fontWeight: 700, lineHeight: 1.25, color: "#1a1916", maxWidth: 680, margin: "0 auto" }}>{story.headline}</h1>
+        <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+          {Object.entries(story.quadrants).map(([key, q]) => (
+            <span key={key} style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "var(--font-inter), sans-serif", fontSize: 10, color: QUADRANT_META[key]?.color || q.color, fontWeight: 600, letterSpacing: "0.06em" }}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: QUADRANT_META[key]?.color || q.color, display: "inline-block" }} />
+              {q.label}
+            </span>
+          ))}
+        </div>
+      </header>
+
+      {/* Back link */}
+      <div style={{ maxWidth: 720, margin: "0 auto", width: "100%", padding: "16px 24px 0" }}>
+        <button onClick={() => window.history.back()} style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 13, color: "#9a9590", background: "none", border: "none", cursor: "pointer", padding: 0 }}>← Back</button>
+      </div>
+
+      <ChatUI story={story} initialMessages={initialMessages} />
     </div>
   );
 }
