@@ -1,5 +1,7 @@
 import { getLatestBatch } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const batch = await getLatestBatch();
