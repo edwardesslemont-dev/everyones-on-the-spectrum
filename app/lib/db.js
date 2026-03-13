@@ -56,7 +56,7 @@ export async function getArchiveBatches() {
   const result = await db.query(
     `SELECT batch_key, stories, created_at
      FROM story_batches
-     WHERE created_at > NOW() - INTERVAL '30 days'
+     WHERE created_at > NOW() - INTERVAL '14 days'
      ORDER BY created_at DESC
      OFFSET 1`
   );
@@ -65,7 +65,7 @@ export async function getArchiveBatches() {
 
 export async function cleanupOldBatches() {
   const db = getDb();
-  await db.query(`DELETE FROM story_batches WHERE created_at < NOW() - INTERVAL '30 days'`);
+  await db.query(`DELETE FROM story_batches WHERE created_at < NOW() - INTERVAL '14 days'`);
 }
 
 export function getBatchKey() {

@@ -3,17 +3,17 @@ import Anthropic from "@anthropic-ai/sdk";
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const QUADRANT_META = {
-  authLeft:  { label: "Big Gov. Left",      color: "#7965B2", bgColor: "#F7F5FD", borderColor: "#D8D0F0" },
-  authRight: { label: "Big Gov. Right",     color: "#C47B3C", bgColor: "#FCF6EE", borderColor: "#EDD8B8" },
-  libLeft:   { label: "Libertarian Left",   color: "#4A82B0", bgColor: "#EFF6FC", borderColor: "#C0DDF0" },
-  libRight:  { label: "Libertarian Right",  color: "#4E8E80", bgColor: "#EFF8F6", borderColor: "#B8DDD8" },
+  authLeft:  { label: "Progressive Governance",          color: "#7965B2", bgColor: "#F7F5FD", borderColor: "#D8D0F0" },
+  authRight: { label: "Conservative Governance",         color: "#C47B3C", bgColor: "#FCF6EE", borderColor: "#EDD8B8" },
+  libLeft:   { label: "Egalitarian Anti-Establishment",  color: "#4A82B0", bgColor: "#EFF6FC", borderColor: "#C0DDF0" },
+  libRight:  { label: "Free-Market Libertarian",         color: "#4E8E80", bgColor: "#EFF8F6", borderColor: "#B8DDD8" },
 };
 
 const QUADRANT_LABELS = {
-  authLeft: "BIG GOV. LEFT SOURCES",
-  authRight: "BIG GOV. RIGHT SOURCES",
-  libLeft: "LIBERTARIAN LEFT SOURCES",
-  libRight: "LIBERTARIAN RIGHT SOURCES",
+  authLeft: "PROGRESSIVE GOVERNANCE SOURCES",
+  authRight: "CONSERVATIVE GOVERNANCE SOURCES",
+  libLeft: "EGALITARIAN ANTI-ESTABLISHMENT SOURCES",
+  libRight: "FREE-MARKET LIBERTARIAN SOURCES",
   general: "TECH / BUSINESS / CULTURE SOURCES",
 };
 
@@ -30,7 +30,7 @@ function formatHeadlines(headlines) {
 export async function generateStories(headlines) {
   const headlineText = formatHeadlines(headlines);
 
-  const prompt = `You are the editorial engine for "Everyone's on the Spectrum" — a news app that presents the most important stories of the moment from 4 political perspectives: Big Gov. Left, Big Gov. Right, Libertarian Left, and Libertarian Right.
+  const prompt = `You are the editorial engine for "Everyone's on the Spectrum" — a news app that presents the most important stories of the moment from 4 political perspectives: Progressive Governance, Conservative Governance, Egalitarian Anti-Establishment, and Free-Market Libertarian.
 
 Here are headlines from 25 news sources across the political spectrum and general interest categories:
 

@@ -3,6 +3,21 @@ import { useState, useEffect } from "react";
 
 const SENTIMENT_EMOJI = { 1: "😡", 2: "😠", 3: "😐", 4: "🙂", 5: "😍" };
 
+const QUADRANT_META = {
+  authLeft:  { label: "Progressive Governance",         color: "#7965B2", bgColor: "#F7F5FD", borderColor: "#D8D0F0" },
+  authRight: { label: "Conservative Governance",        color: "#C47B3C", bgColor: "#FCF6EE", borderColor: "#EDD8B8" },
+  libLeft:   { label: "Egalitarian Anti-Establishment", color: "#4A82B0", bgColor: "#EFF6FC", borderColor: "#C0DDF0" },
+  libRight:  { label: "Free-Market Libertarian",        color: "#4E8E80", bgColor: "#EFF8F6", borderColor: "#B8DDD8" },
+};
+
+function formatBatchTime(createdAt) {
+  return new Date(createdAt).toLocaleString("en-US", {
+    timeZone: "America/Los_Angeles",
+    month: "long", day: "numeric", year: "numeric",
+    hour: "numeric", minute: "2-digit", hour12: true,
+  }) + " PT";
+}
+
 const CATEGORY_COLORS = {
   Politics:   { bg: "#F0EEF8", text: "#6B5EA8" },
   Technology: { bg: "#E8F4FD", text: "#3A6FA0" },
@@ -12,14 +27,6 @@ const CATEGORY_COLORS = {
   Culture:    { bg: "#FBF0F8", text: "#8A3A6A" },
 };
 
-function parseBatchKey(key) {
-  const parts = key.split("-");
-  const period = parts.pop();
-  const [year, month, day] = parts;
-  const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-  const dateStr = date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-  return `${dateStr} · ${period.charAt(0).toUpperCase() + period.slice(1)}`;
-}
 
 function QuadrantCard({ q }) {
   return (
@@ -55,7 +62,17 @@ export default function ArchivePage() {
   useEffect(() => {
     fetch("/api/archive")
       .then((r) => r.json())
-      .then((data) => { if (data.batches) setBatches(data.batches); })
+      .then((data) => {
+        if (data.batches) setBatches(data.batches.map((b) => ({
+          ...b,
+          stories: Array.isArray(b.stories) ? b.stories.map((s) => ({
+            ...s,
+            quadrants: Object.fromEntries(
+              Object.entries(s.quadrants).map(([key, val]) => [key, { ...val, ...QUADRANT_META[key] }])
+            ),
+          })) : [],
+        })));
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -123,11 +140,12 @@ export default function ArchivePage() {
       </header>
 
       <main style={{ maxWidth: 860, margin: "0 auto", padding: "0 24px 80px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "32px 0 24px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "32px 0 16px" }}>
           <a href="/" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 13, color: "#9a9590", textDecoration: "none" }}>← Back</a>
           <div style={{ flex: 1, height: 1, background: "#EDEAE4" }} />
           <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#b0aba5" }}>Archive</span>
         </div>
+        <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, color: "#b0aba5", marginBottom: 28 }}>Past story batches from the last 2 weeks. Each batch reflects the top stories at the time of that refresh.</p>
 
         {loading && (
           <div style={{ textAlign: "center", padding: "40px 0", fontFamily: "var(--font-inter), sans-serif", fontSize: 13, color: "#b0aba5" }}>Loading archive…</div>
@@ -139,7 +157,7 @@ export default function ArchivePage() {
 
         {!loading && batches.map((batch) => {
           const stories = Array.isArray(batch.stories) ? batch.stories : [];
-          const label = parseBatchKey(batch.batch_key);
+          const label = formatBatchTime(batch.created_at);
           return (
             <div key={batch.batch_key} style={{ marginBottom: 40 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>

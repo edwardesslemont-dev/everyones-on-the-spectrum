@@ -3,6 +3,14 @@ import { useState, useEffect } from "react";
 
 const SENTIMENT_EMOJI = { 1: "😡", 2: "😠", 3: "😐", 4: "🙂", 5: "😍" };
 
+// Always override DB labels/colors with current definitions
+const QUADRANT_META = {
+  authLeft:  { label: "Progressive Governance",         color: "#7965B2", bgColor: "#F7F5FD", borderColor: "#D8D0F0" },
+  authRight: { label: "Conservative Governance",        color: "#C47B3C", bgColor: "#FCF6EE", borderColor: "#EDD8B8" },
+  libLeft:   { label: "Egalitarian Anti-Establishment", color: "#4A82B0", bgColor: "#EFF6FC", borderColor: "#C0DDF0" },
+  libRight:  { label: "Free-Market Libertarian",        color: "#4E8E80", bgColor: "#EFF8F6", borderColor: "#B8DDD8" },
+};
+
 const CATEGORY_COLORS = {
   Politics:    { bg: "#F0EEF8", text: "#6B5EA8" },
   Technology:  { bg: "#E8F4FD", text: "#3A6FA0" },
@@ -63,12 +71,12 @@ function QuadrantCard({ q }) {
 const COMPASS = [
   {
     top: [
-      { label: "Big Gov. Left", color: "#7965B2", bg: "#F7F5FD", border: "#D8D0F0", desc: "State-enforced equality & progressive moral regulation" },
-      { label: "Big Gov. Right", color: "#C47B3C", bg: "#FCF6EE", border: "#EDD8B8", desc: "State-enforced tradition, order & protected markets" },
+      { label: "Progressive Governance",         color: "#7965B2", bg: "#F7F5FD", border: "#D8D0F0", desc: "Equality, inclusion, and active public institutions to shape a fairer society" },
+      { label: "Conservative Governance",        color: "#C47B3C", bg: "#FCF6EE", border: "#EDD8B8", desc: "Tradition, order, and public authority to protect social stability and national cohesion" },
     ],
     bottom: [
-      { label: "Libertarian Left", color: "#4A82B0", bg: "#EFF6FC", border: "#C0DDF0", desc: "Radical equality through voluntary cooperation & maximum personal freedom" },
-      { label: "Libertarian Right", color: "#4E8E80", bg: "#EFF8F6", border: "#B8DDD8", desc: "Maximum individual liberty & completely free markets" },
+      { label: "Egalitarian Anti-Establishment", color: "#4A82B0", bg: "#EFF6FC", border: "#C0DDF0", desc: "Grassroots equality, skepticism of elites, and maximum personal freedom from top-down control" },
+      { label: "Free-Market Libertarian",        color: "#4E8E80", bg: "#EFF8F6", border: "#B8DDD8", desc: "Individual liberty, limited government, and open markets as the best path to prosperity" },
     ],
   },
 ];
@@ -96,7 +104,14 @@ export default function Page() {
     return fetch("/api/stories")
       .then((r) => r.json())
       .then((data) => {
-        if (data.stories?.length) setStories(data.stories);
+        if (data.stories?.length) {
+          setStories(data.stories.map((s) => ({
+            ...s,
+            quadrants: Object.fromEntries(
+              Object.entries(s.quadrants).map(([key, val]) => [key, { ...val, ...QUADRANT_META[key] }])
+            ),
+          })));
+        }
         if (data.createdAt) setCreatedAt(data.createdAt);
       })
       .catch(() => {});
@@ -150,7 +165,7 @@ export default function Page() {
                 Facts first — then all four perspectives.
               </p>
               <div style={{ textAlign: "center", marginBottom: 6 }}>
-                <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#b0aba5" }}>↑ Big Government / Social Control</span>
+                <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#b0aba5" }}>↑ Stronger Institutions / Social Order</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
                 {COMPASS[0].top.map((q) => (
@@ -164,8 +179,8 @@ export default function Page() {
                 ))}
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", margin: "6px 0" }}>
-                <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, textTransform: "uppercase", color: "#b0aba5", letterSpacing: "0.1em" }}>← Economic Equality</span>
-                <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, textTransform: "uppercase", color: "#b0aba5", letterSpacing: "0.1em" }}>Free Markets →</span>
+                <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, textTransform: "uppercase", color: "#b0aba5", letterSpacing: "0.1em" }}>← Economic Fairness / Redistribution</span>
+                <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, textTransform: "uppercase", color: "#b0aba5", letterSpacing: "0.1em" }}>Markets / Individual Choice →</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
                 {COMPASS[0].bottom.map((q) => (
@@ -179,7 +194,7 @@ export default function Page() {
                 ))}
               </div>
               <div style={{ textAlign: "center", marginTop: 6 }}>
-                <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#b0aba5" }}>↓ Personal Freedom / Live & Let Live</span>
+                <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#b0aba5" }}>↓ More Personal Freedom / Less Government Control</span>
               </div>
             </div>
 
@@ -199,7 +214,7 @@ export default function Page() {
                   </button>
                 )}
               </div>
-              {!loading && !refreshing && <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, color: "#b0aba5", margin: 0 }}>Stories update every 4 hours. Use the button to refresh manually.</p>}
+              {!loading && !refreshing && <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, color: "#b0aba5", margin: 0 }}>Stories don't refresh automatically. Hit Refresh above to get the latest — available once every 4 hours.</p>}
               {refreshing && <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, color: "#b0aba5", margin: 0 }}>Fetching the latest headlines and generating new stories — this takes about 45 seconds…</p>}
             </div>
 
@@ -265,7 +280,7 @@ export default function Page() {
             {tab === "spectrum" && (
               <div>
                 <div style={{ textAlign: "center", marginBottom: 8 }}>
-                  <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#b0aba5" }}>↑ Big Government / Social Control</span>
+                  <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#b0aba5" }}>↑ Stronger Institutions / Social Order</span>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   {[story.quadrants.authLeft, story.quadrants.authRight].map((q) => (
@@ -273,8 +288,8 @@ export default function Page() {
                   ))}
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", margin: "8px 0" }}>
-                  <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, textTransform: "uppercase", color: "#b0aba5", letterSpacing: "0.1em" }}>← Economic Equality</span>
-                  <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, textTransform: "uppercase", color: "#b0aba5", letterSpacing: "0.1em" }}>Free Markets →</span>
+                  <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, textTransform: "uppercase", color: "#b0aba5", letterSpacing: "0.1em" }}>← Economic Fairness / Redistribution</span>
+                  <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, textTransform: "uppercase", color: "#b0aba5", letterSpacing: "0.1em" }}>Markets / Individual Choice →</span>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   {[story.quadrants.libLeft, story.quadrants.libRight].map((q) => (
@@ -282,7 +297,7 @@ export default function Page() {
                   ))}
                 </div>
                 <div style={{ textAlign: "center", marginTop: 8 }}>
-                  <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#b0aba5" }}>↓ Personal Freedom / Live & Let Live</span>
+                  <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#b0aba5" }}>↓ More Personal Freedom / Less Government Control</span>
                 </div>
               </div>
             )}
