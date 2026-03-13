@@ -79,6 +79,29 @@ export default function HowItWorks() {
           </div>
         </Section>
 
+        <Section title="The sentiment scale">
+          <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 15, lineHeight: 1.8, color: "#2a2724", marginBottom: 16 }}>
+            Each quadrant gets a sentiment score from 1 to 5 — not based on whether the news is objectively good or bad, but on whether the story aligns with or threatens that quadrant's core values.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {[
+              { emoji: "😡", score: 1, label: "Very negative", desc: "This story directly threatens or contradicts this quadrant's core values." },
+              { emoji: "😠", score: 2, label: "Negative", desc: "This quadrant sees this as bad news, even if not existentially threatening." },
+              { emoji: "😐", score: 3, label: "Neutral / mixed", desc: "This quadrant has complicated or conflicted feelings — some good, some bad." },
+              { emoji: "🙂", score: 4, label: "Positive", desc: "This story generally aligns with this quadrant's values and preferred direction." },
+              { emoji: "😍", score: 5, label: "Very positive", desc: "This is exactly what this quadrant wants to see — strongly validates their worldview." },
+            ].map(({ emoji, score, label, desc }) => (
+              <div key={score} style={{ display: "flex", gap: 16, alignItems: "flex-start", background: "#fff", border: "1px solid #EDEAE4", borderRadius: 10, padding: "12px 16px" }}>
+                <span style={{ fontSize: 24, lineHeight: 1, paddingTop: 2 }}>{emoji}</span>
+                <div>
+                  <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 12, fontWeight: 600, color: "#1a1916", marginBottom: 2 }}>{score} — {label}</p>
+                  <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 13, lineHeight: 1.6, color: "#5a5650" }}>{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+
         <Section title="Sources">
           <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 14, lineHeight: 1.7, color: "#5a5650", marginBottom: 16 }}>
             We pull from 25 outlets — 5 per quadrant, plus 5 tech, business, and culture sources. The political sources were chosen to represent each quadrant's mainstream and independent voices. The general sources ensure we surface major tech, AI, business, and culture stories that matter regardless of political angle.

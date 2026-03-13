@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 
+const SENTIMENT_EMOJI = { 1: "😡", 2: "😠", 3: "😐", 4: "🙂", 5: "😍" };
+
 const CATEGORY_COLORS = {
   Politics:   { bg: "#F0EEF8", text: "#6B5EA8" },
   Technology: { bg: "#E8F4FD", text: "#3A6FA0" },
@@ -27,7 +29,7 @@ function QuadrantCard({ q }) {
           <div style={{ width: 10, height: 10, borderRadius: "50%", background: q.color }} />
           <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: q.color, fontWeight: 700 }}>{q.label}</span>
         </div>
-        <span style={{ fontSize: 22, lineHeight: 1 }}>{q.emotion}</span>
+        <span style={{ fontSize: 22, lineHeight: 1 }}>{SENTIMENT_EMOJI[q.sentiment] || q.emotion || "😐"}</span>
       </div>
       <div style={{ marginBottom: 10 }}>
         <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: q.color, marginBottom: 5, opacity: 0.8 }}>Why they feel this way</p>

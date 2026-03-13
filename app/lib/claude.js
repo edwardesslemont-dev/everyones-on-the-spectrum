@@ -56,7 +56,7 @@ For each story generate:
 - A category from: Politics, Economy, Technology, Health, World, Culture
 - 4–6 verified facts (specific events, numbers, names — this is where tactical details like the school strike belong)
 - For each of the 4 quadrants:
-  - emotion: one emoji representing how this quadrant emotionally reacts to this story
+  - sentiment: an integer 1–5 reflecting how this story lands for this quadrant relative to their core values. 1 = very negative/threatening to their values, 2 = negative, 3 = neutral or mixed, 4 = positive, 5 = very positive/strongly aligns with their values. This is NOT about whether the news is objectively good or bad — it's about whether it aligns with or threatens THIS quadrant's worldview.
   - why: WHY people in this quadrant feel the way they do, rooted in their core values
   - defense: HOW they'd argue their position — specific evidence, historical examples, or logic they'd use
   - sources: 2–3 real outlet names from that quadrant's typical media diet
@@ -75,10 +75,10 @@ Return ONLY a valid JSON object — no markdown, no explanation, nothing else. A
       "headline": "...",
       "facts": ["fact 1", "fact 2", "fact 3", "fact 4", "fact 5"],
       "quadrants": {
-        "authLeft":  { "emotion": "😤", "why": "...", "defense": "...", "sources": ["Source A", "Source B", "Source C"] },
-        "authRight": { "emotion": "😡", "why": "...", "defense": "...", "sources": ["Source A", "Source B", "Source C"] },
-        "libLeft":   { "emotion": "🤔", "why": "...", "defense": "...", "sources": ["Source A", "Source B", "Source C"] },
-        "libRight":  { "emotion": "😌", "why": "...", "defense": "...", "sources": ["Source A", "Source B", "Source C"] }
+        "authLeft":  { "sentiment": 3, "why": "...", "defense": "...", "sources": ["Source A", "Source B", "Source C"] },
+        "authRight": { "sentiment": 3, "why": "...", "defense": "...", "sources": ["Source A", "Source B", "Source C"] },
+        "libLeft":   { "sentiment": 3, "why": "...", "defense": "...", "sources": ["Source A", "Source B", "Source C"] },
+        "libRight":  { "sentiment": 3, "why": "...", "defense": "...", "sources": ["Source A", "Source B", "Source C"] }
       }
     }
   ]
