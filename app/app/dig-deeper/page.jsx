@@ -9,7 +9,7 @@ const QUADRANT_META = {
 };
 
 const HISTORY_TTL = 24 * 60 * 60 * 1000;
-const INIT_TEXT = "Give me a brief analyst's take on this story — what's the most important context a reader should know, what's genuinely contested vs what all sides agree on, and what to watch for next.";
+const INIT_TEXT = "Go through each fact listed for this story one by one and dig deeper — share the most important context behind each fact, what's genuinely contested, and what it actually means for the bigger picture.";
 
 function getHistoryKey(id) {
   return `dig-deeper-history-${id}`;
