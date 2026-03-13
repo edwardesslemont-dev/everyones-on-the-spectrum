@@ -1,10 +1,9 @@
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { streamText } from "ai";
+import Anthropic from "@anthropic-ai/sdk";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req) {
   const { messages, story } = await req.json();
@@ -36,12 +35,34 @@ Guidelines:
 - Never advocate for a political position. Illuminate all sides honestly.`
     : `You are a helpful political analyst. Answer questions about news and politics with balance and clarity.`;
 
-  const result = streamText({
-    model: anthropic("claude-haiku-4-5-20251001"),
-    system: systemPrompt,
-    messages: messages.map((m) => ({ role: m.role, content: m.content })),
-    maxTokens: 1000,
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        const anthropicStream = client.messages.stream({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: messages.map((m) => ({ role: m.role, content: m.content })),
+        });
+
+        for await (const event of anthropicStream) {
+          if (
+            event.type === "content_block_delta" &&
+            event.delta.type === "text_delta"
+          ) {
+            controller.enqueue(encoder.encode(event.delta.text));
+          }
+        }
+      } catch (err) {
+        controller.enqueue(encoder.encode(`Error: ${err.message}`));
+      } finally {
+        controller.close();
+      }
+    },
   });
 
-  return result.toTextStreamResponse();
+  return new Response(stream, {
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  });
 }
