@@ -275,6 +275,17 @@ export default function Page() {
                   </div>
                 ))}
                 <button className="see-spectrum-btn" onClick={() => setTab("spectrum")}>See The Spectrum →</button>
+                <button
+                  style={{ display: "block", marginTop: 8, background: "#F7F5FD", color: "#7965B2", border: "1.5px solid #D8D0F0", borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontFamily: "var(--font-inter), sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: "0.02em", transition: "opacity 0.15s" }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = "0.75"}
+                  onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+                  onClick={() => {
+                    sessionStorage.setItem("dig-deeper-story", JSON.stringify(story));
+                    window.location.href = "/dig-deeper";
+                  }}
+                >
+                  Dig Deeper →
+                </button>
               </div>
             )}
 
