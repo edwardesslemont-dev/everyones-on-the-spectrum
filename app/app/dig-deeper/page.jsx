@@ -1,6 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
-import { useChat } from "@ai-sdk/react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 const QUADRANT_META = {
   authLeft:  { label: "Progressive Governance",         color: "#7965B2" },
@@ -19,15 +18,15 @@ function getHistoryKey(id) {
 function loadHistory(id) {
   try {
     const raw = localStorage.getItem(getHistoryKey(id));
-    if (!raw) return [];
+    if (!raw) return null;
     const { messages, savedAt } = JSON.parse(raw);
     if (Date.now() - savedAt > HISTORY_TTL) {
       localStorage.removeItem(getHistoryKey(id));
-      return [];
+      return null;
     }
     return messages;
   } catch {
-    return [];
+    return null;
   }
 }
 
@@ -37,108 +36,141 @@ function saveHistory(id, messages) {
   } catch {}
 }
 
+let msgCounter = 0;
+function newId() { return `msg-${++msgCounter}`; }
+
 function ChatUI({ story, initialMessages }) {
+  const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState("");
+  const [streaming, setStreaming] = useState(false);
   const bottomRef = useRef(null);
+  const abortRef = useRef(null);
   const initiated = useRef(false);
-
-  const { messages, sendMessage, status, setMessages } = useChat({
-    api: "/api/chat",
-    body: { story },
-    initialMessages,
-    onFinish: () => {
-      saveHistory(story.id, messages);
-    },
-  });
-
-  const isLoading = status === "streaming" || status === "submitted";
-
-  // Trigger initial analysis if no history
-  useEffect(() => {
-    if (!initiated.current && messages.length === 0) {
-      initiated.current = true;
-      sendMessage({ text: INIT_TEXT });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading]);
+  }, [messages, streaming]);
 
-  // Persist after messages change
+  // Persist history whenever messages change
   useEffect(() => {
     if (messages.length > 0) saveHistory(story.id, messages);
   }, [messages, story.id]);
 
+  const sendMessage = useCallback(async (userText, currentMessages) => {
+    if (streaming) return;
+
+    const userMsg = { id: newId(), role: "user", content: userText };
+    const assistantId = newId();
+    const nextMessages = [...currentMessages, userMsg];
+
+    setMessages([...nextMessages, { id: assistantId, role: "assistant", content: "" }]);
+    setStreaming(true);
+
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: nextMessages, story }),
+        signal: ctrl.signal,
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let full = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        full += decoder.decode(value, { stream: true });
+        setMessages([...nextMessages, { id: assistantId, role: "assistant", content: full }]);
+      }
+
+      const finalMessages = [...nextMessages, { id: assistantId, role: "assistant", content: full }];
+      setMessages(finalMessages);
+      saveHistory(story.id, finalMessages);
+    } catch (err) {
+      if (err.name !== "AbortError") {
+        setMessages((prev) => prev.map((m) =>
+          m.id === assistantId ? { ...m, content: "Something went wrong. Please try again." } : m
+        ));
+      }
+    } finally {
+      setStreaming(false);
+    }
+  }, [streaming, story]);
+
+  // Trigger initial analysis
+  useEffect(() => {
+    if (!initiated.current && messages.length === 0) {
+      initiated.current = true;
+      sendMessage(INIT_TEXT, []);
+    }
+  }, [messages.length, sendMessage]);
+
   function submit(e) {
     e?.preventDefault();
-    if (!input.trim() || isLoading) return;
-    sendMessage({ text: input });
+    const trimmed = input.trim();
+    if (!trimmed || streaming) return;
     setInput("");
+    sendMessage(trimmed, messages);
   }
 
   function clearHistory() {
+    if (abortRef.current) abortRef.current.abort();
     localStorage.removeItem(getHistoryKey(story.id));
-    setMessages([]);
+    const empty = [];
+    setMessages(empty);
     initiated.current = false;
-    setTimeout(() => {
-      initiated.current = true;
-      sendMessage({ text: INIT_TEXT });
-    }, 0);
   }
 
-  // Hide the auto-sent initial prompt from the visible chat
+  // Hide the auto-triggered initial prompt from the visible chat
   const visibleMessages = messages.filter(
-    (m) => !(m.role === "user" && m.parts?.some?.(p => p.type === "text" && p.text === INIT_TEXT))
-         && !(m.role === "user" && m.content === INIT_TEXT)
+    (m) => !(m.role === "user" && m.content === INIT_TEXT)
   );
 
   return (
     <>
       {/* Messages */}
       <div style={{ flex: 1, maxWidth: 720, margin: "0 auto", width: "100%", padding: "20px 24px 0", overflowY: "auto" }}>
-        {visibleMessages.length === 0 && isLoading && (
+        {visibleMessages.length === 0 && streaming && (
           <div style={{ textAlign: "center", padding: "40px 0", fontFamily: "var(--font-inter), sans-serif", fontSize: 13, color: "#b0aba5" }}>
             Generating analysis…
           </div>
         )}
 
-        {visibleMessages.map((m) => {
-          const text = m.content ?? m.parts?.filter(p => p.type === "text").map(p => p.text).join("") ?? "";
-          return (
-            <div key={m.id} style={{ marginBottom: 20, display: "flex", flexDirection: "column", alignItems: m.role === "user" ? "flex-end" : "flex-start" }}>
-              {m.role === "assistant" && (
-                <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#b0aba5", marginBottom: 6 }}>Analyst</span>
-              )}
-              <div style={{
-                maxWidth: "85%",
-                padding: m.role === "user" ? "10px 16px" : "16px 20px",
-                borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "4px 16px 16px 16px",
-                background: m.role === "user" ? "#7965B2" : "#fff",
-                border: m.role === "user" ? "none" : "1px solid #EDEAE4",
-                color: m.role === "user" ? "#fff" : "#2a2724",
-                fontFamily: "var(--font-source-serif), Georgia, serif",
-                fontSize: 14,
-                lineHeight: 1.75,
-                whiteSpace: "pre-wrap",
-              }}>
-                {text}
-              </div>
-            </div>
-          );
-        })}
-
-        {isLoading && visibleMessages.length > 0 && (
-          <div style={{ display: "flex", alignItems: "flex-start", marginBottom: 20 }}>
-            <div style={{ background: "#fff", border: "1px solid #EDEAE4", borderRadius: "4px 16px 16px 16px", padding: "14px 18px" }}>
-              <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 13, color: "#b0aba5" }}>Thinking…</span>
+        {visibleMessages.map((m) => (
+          <div key={m.id} style={{ marginBottom: 20, display: "flex", flexDirection: "column", alignItems: m.role === "user" ? "flex-end" : "flex-start" }}>
+            {m.role === "assistant" && (
+              <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#b0aba5", marginBottom: 6 }}>Analyst</span>
+            )}
+            <div style={{
+              maxWidth: "85%",
+              padding: m.role === "user" ? "10px 16px" : "16px 20px",
+              borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "4px 16px 16px 16px",
+              background: m.role === "user" ? "#7965B2" : "#fff",
+              border: m.role === "user" ? "none" : "1px solid #EDEAE4",
+              color: m.role === "user" ? "#fff" : "#2a2724",
+              fontFamily: "var(--font-source-serif), Georgia, serif",
+              fontSize: 14,
+              lineHeight: 1.75,
+              whiteSpace: "pre-wrap",
+            }}>
+              {m.content || <span style={{ opacity: 0.4 }}>…</span>}
             </div>
           </div>
+        ))}
+
+        {streaming && visibleMessages.length > 0 && visibleMessages[visibleMessages.length - 1]?.content && (
+          null // streaming indicator shown inline as content updates
         )}
 
-        {visibleMessages.length > 1 && !isLoading && (
+        {visibleMessages.length > 1 && !streaming && (
           <div style={{ textAlign: "center", padding: "8px 0 4px" }}>
             <button
               onClick={clearHistory}
@@ -182,17 +214,17 @@ function ChatUI({ story, initialMessages }) {
           />
           <button
             type="submit"
-            disabled={!input.trim() || isLoading}
+            disabled={!input.trim() || streaming}
             style={{
               fontFamily: "var(--font-inter), sans-serif",
               fontSize: 13,
               fontWeight: 600,
               color: "#fff",
-              background: input.trim() && !isLoading ? "#7965B2" : "#d0cbc5",
+              background: input.trim() && !streaming ? "#7965B2" : "#d0cbc5",
               border: "none",
               borderRadius: 12,
               padding: "12px 20px",
-              cursor: input.trim() && !isLoading ? "pointer" : "default",
+              cursor: input.trim() && !streaming ? "pointer" : "default",
               transition: "background 0.15s",
               whiteSpace: "nowrap",
             }}
@@ -218,7 +250,7 @@ export default function DigDeeperPage() {
       if (raw) {
         const s = JSON.parse(raw);
         setStory(s);
-        setInitialMessages(loadHistory(s.id));
+        setInitialMessages(loadHistory(s.id) ?? []);
       } else {
         setInitialMessages([]);
       }
@@ -227,6 +259,7 @@ export default function DigDeeperPage() {
     }
   }, []);
 
+  // Don't render until sessionStorage is read
   if (initialMessages === null) return null;
 
   if (!story) {
@@ -259,7 +292,7 @@ export default function DigDeeperPage() {
         <button onClick={() => window.history.back()} style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 13, color: "#9a9590", background: "none", border: "none", cursor: "pointer", padding: 0 }}>← Back</button>
       </div>
 
-      <ChatUI story={story} initialMessages={initialMessages} />
+      <ChatUI key={story.id} story={story} initialMessages={initialMessages} />
     </div>
   );
 }

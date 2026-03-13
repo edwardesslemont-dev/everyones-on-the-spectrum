@@ -1,5 +1,5 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
-import { convertToModelMessages, streamText } from "ai";
+import { streamText } from "ai";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -39,9 +39,9 @@ Guidelines:
   const result = streamText({
     model: anthropic("claude-haiku-4-5-20251001"),
     system: systemPrompt,
-    messages: convertToModelMessages(messages),
+    messages: messages.map((m) => ({ role: m.role, content: m.content })),
     maxTokens: 1000,
   });
 
-  return result.toUIMessageStreamResponse();
+  return result.toTextStreamResponse();
 }
