@@ -99,6 +99,7 @@ export default function Page() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [tab, setTab] = useState("facts");
+  const [showEmojiModal, setShowEmojiModal] = useState(false);
 
   function fetchStories() {
     return fetch("/api/stories")
@@ -279,6 +280,11 @@ export default function Page() {
 
             {tab === "spectrum" && (
               <div>
+                <div style={{ textAlign: "right", marginBottom: 12 }}>
+                  <button onClick={() => setShowEmojiModal(true)} style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, color: "#b0aba5", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 3, padding: 0 }}>
+                    What do the emojis mean?
+                  </button>
+                </div>
                 <div style={{ textAlign: "center", marginBottom: 8 }}>
                   <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#b0aba5" }}>↑ Stronger Institutions / Social Order</span>
                 </div>
@@ -313,6 +319,37 @@ export default function Page() {
               {label}
             </a>
           ))}
+        </div>
+      )}
+
+      {showEmojiModal && (
+        <div onClick={() => setShowEmojiModal(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "#fff", borderRadius: 16, padding: "28px 24px", maxWidth: 420, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#b0aba5" }}>The sentiment scale</span>
+              <button onClick={() => setShowEmojiModal(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#b0aba5", fontSize: 18, lineHeight: 1, padding: 0 }}>✕</button>
+            </div>
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 13, lineHeight: 1.7, color: "#5a5650", marginBottom: 16 }}>
+              Each emoji reflects how a story lands for that quadrant — not whether the news is good or bad in general, but whether it aligns with or threatens their core values.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {[
+                { emoji: "😡", score: 1, label: "Very negative", desc: "Directly threatens this quadrant's core values." },
+                { emoji: "😠", score: 2, label: "Negative", desc: "Bad news for this quadrant, even if not existential." },
+                { emoji: "😐", score: 3, label: "Neutral / mixed", desc: "Complicated feelings — some good, some bad." },
+                { emoji: "🙂", score: 4, label: "Positive", desc: "Generally aligns with this quadrant's values." },
+                { emoji: "😍", score: 5, label: "Very positive", desc: "Strongly validates their worldview." },
+              ].map(({ emoji, score, label, desc }) => (
+                <div key={score} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                  <span style={{ fontSize: 20, lineHeight: 1, paddingTop: 1, minWidth: 24 }}>{emoji}</span>
+                  <div>
+                    <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 12, fontWeight: 600, color: "#1a1916" }}>{score} — {label}</span>
+                    <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: 12, color: "#9a9590" }}> · {desc}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>
