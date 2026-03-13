@@ -24,6 +24,12 @@ function loadHistory(id) {
       localStorage.removeItem(getHistoryKey(id));
       return null;
     }
+    // Discard any history saved in the old @ai-sdk/react parts[] format
+    const valid = messages.every((m) => typeof m.content === "string");
+    if (!valid) {
+      localStorage.removeItem(getHistoryKey(id));
+      return null;
+    }
     return messages;
   } catch {
     return null;

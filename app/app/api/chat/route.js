@@ -43,7 +43,9 @@ Guidelines:
           model: "claude-haiku-4-5-20251001",
           max_tokens: 1000,
           system: systemPrompt,
-          messages: messages.map((m) => ({ role: m.role, content: m.content })),
+          messages: messages
+      .filter((m) => typeof m.content === "string" && m.content.trim())
+      .map((m) => ({ role: m.role, content: m.content })),
         });
 
         for await (const event of anthropicStream) {
