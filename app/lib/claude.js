@@ -1,6 +1,6 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { runOnSubscription } from "@/lib/relay";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const JSON_ONLY = "Follow the user's instructions exactly. Reply with the requested JSON and nothing else.";
 
 const QUADRANT_META = {
   authLeft:  { label: "Progressive Governance",          color: "#7965B2", bgColor: "#F7F5FD", borderColor: "#D8D0F0" },
@@ -84,13 +84,15 @@ Return ONLY a valid JSON object — no markdown, no explanation, nothing else. A
   ]
 }`;
 
-  const message = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 6000,
-    messages: [{ role: "user", content: prompt }],
+  const text = await runOnSubscription({
+    kind: "stories",
+    model: "haiku",
+    system: JSON_ONLY,
+    prompt,
+    timeoutMs: 280_000,
   });
 
-  let raw = message.content[0].text.trim();
+  let raw = text.trim();
 
   // Strip markdown code fences if present
   raw = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
@@ -156,13 +158,15 @@ Return ONLY valid JSON — no markdown, no explanation:
   }
 }`;
 
-  const message = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 2000,
-    messages: [{ role: "user", content: prompt }],
+  const text = await runOnSubscription({
+    kind: "search",
+    model: "haiku",
+    system: JSON_ONLY,
+    prompt,
+    timeoutMs: 55_000,
   });
 
-  let raw = message.content[0].text.trim();
+  let raw = text.trim();
   raw = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
 
   const jsonMatch = raw.match(/\{[\s\S]*\}/);
